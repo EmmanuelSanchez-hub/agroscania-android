@@ -1,0 +1,20 @@
+# Dependencias
+node_modules/
+
+# Expo
+.expo/
+dist/
+
+# Android nativo (generado por expo prebuild, solo si existe)
+android/
+ios/
+
+# Variables de entorno
+.env
+.env.local
+
+# JS bundles y mapas
+*.jsbundle
+*.jsbundle.map
+.git_disabled/  
+.git_disabled/  
