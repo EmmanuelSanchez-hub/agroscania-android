@@ -13,7 +13,7 @@
         "buildType": "apk"
       },
       "distribution": "internal",
-      "node": "18.20.4"
+      "node": "20.19.4"
     },
     "production": {
       "autoIncrement": true
