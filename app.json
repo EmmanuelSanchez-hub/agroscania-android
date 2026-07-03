@@ -57,8 +57,7 @@
         {
           "locationAlwaysAndWhenInUsePermission": "Permitir que AgroScanIA acceda a tu ubicación"
         }
-      ],
-      "expo-web-browser"
+      ]
     ],
     "runtimeVersion": {
       "policy": "appVersion"
