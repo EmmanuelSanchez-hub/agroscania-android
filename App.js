@@ -31,6 +31,13 @@ const AppContent = () => {
 };
 
 export default function App() {
+  const { fontsLoaded, fontError } = useIoniconsFonts();
+
+  // No mostrar nada hasta que las fuentes estén cargadas
+  if (!fontsLoaded && !fontError) {
+    return null;
+  }
+  
   return (
     <AuthProvider>
       <SafeAreaProvider>
