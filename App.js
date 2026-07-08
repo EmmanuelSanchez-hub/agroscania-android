@@ -13,6 +13,7 @@ import Toast from 'react-native-toast-message';
 import AppNavigator from './src/navigation/AppNavigator';
 import { AuthProvider, useAuth } from './src/context/AuthContext';
 import { COLORS } from './src/config/theme';
+import { useIoniconsFonts } from './src/hooks/useIoniconsFonts';
 
 // Necesario para completar la sesion OAuth cuando el navegador externo redirige a la app
 WebBrowser.maybeCompleteAuthSession();
@@ -37,7 +38,7 @@ export default function App() {
   if (!fontsLoaded && !fontError) {
     return null;
   }
-  
+
   return (
     <AuthProvider>
       <SafeAreaProvider>
