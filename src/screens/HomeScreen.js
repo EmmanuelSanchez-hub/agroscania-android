@@ -3,17 +3,37 @@ import { View, Text, TouchableOpacity, StyleSheet, ScrollView, RefreshControl } 
 import { Ionicons } from '@expo/vector-icons';
 import Toast from 'react-native-toast-message';
 import { COLORS, FONTS, SHADOWS, BORDER_RADIUS } from '../config/theme';
-import { getStats } from '../services/predictionService';
+import { getStats, getPlants, getDiseases } from '../services/predictionService';
 import { useAuth } from '../context/AuthContext';
+import { get } from 'react-native/Libraries/TurboModule/TurboModuleRegistry';
 
 const HomeScreen = ({ navigation }) => {
   const { logout } = useAuth();
+  const [plantsCount, setPlantsCount]= useState(0);
+  const [diseasesCount, setDiseasesCount] = useState(0);
   const [stats, setStats] = useState({ total_predictions: 0, by_disease: [] });
   const [refreshing, setRefreshing] = useState(false);
 
   const loadStats = async () => {
     const result = await getStats();
     if (result.success) setStats(result.data);
+
+    const plantsResult = await getPlants();
+    if(plantsResult.success){
+      setPlantsCount(plantsResult.data.count);
+    }
+
+    let totalDiseases = 0;
+    const plantsResult2= await getPlants();
+    if(plantsResult2.success){
+      for(const plant of plantsResult2.data.count){
+        const diseasesResult = await getDiseases(plant);
+        if(diseasesResult.success){
+          totalDiseases += diseasesResult.data.count;
+        }
+      }
+    }
+    setDiseasesCount(totalDiseases);
   };
 
   useEffect(() => { loadStats(); }, []);
@@ -46,12 +66,12 @@ const HomeScreen = ({ navigation }) => {
           </View>
           <View style={styles.statCard}>
             <Ionicons name="leaf-outline" size={28} color={COLORS.primary} />
-            <Text style={styles.statNumber}>14</Text>
+            <Text style={styles.statNumber}>{plantsCount}</Text>
             <Text style={styles.statLabel}>Plantas</Text>
           </View>
           <View style={styles.statCard}>
             <Ionicons name="bug-outline" size={28} color={COLORS.primary} />
-            <Text style={styles.statNumber}>38</Text>
+            <Text style={styles.statNumber}>{diseasesCount}</Text>
             <Text style={styles.statLabel}>Enfermedades</Text>
           </View>
         </View>
