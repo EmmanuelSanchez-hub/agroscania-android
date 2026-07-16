@@ -53,7 +53,7 @@ const CameraScreen = ({ navigation }) => {
     setAnalyzing(false);
 
     if (result.success) {
-      navigation.replace('Result', {
+      navigation.push('Result', {
         result: result.data,
         imageUri: imageAsset.uri,
       });

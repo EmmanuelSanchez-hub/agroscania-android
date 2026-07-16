@@ -5,13 +5,13 @@ import Toast from 'react-native-toast-message';
 import { COLORS, FONTS, SHADOWS, BORDER_RADIUS } from '../config/theme';
 import { getStats, getPlants, getDiseases } from '../services/predictionService';
 import { useAuth } from '../context/AuthContext';
-import { get } from 'react-native/Libraries/TurboModule/TurboModuleRegistry';
 
 const HomeScreen = ({ navigation }) => {
   const { logout } = useAuth();
   const [plantsCount, setPlantsCount]= useState(0);
   const [diseasesCount, setDiseasesCount] = useState(0);
   const [stats, setStats] = useState({ total_predictions: 0, by_disease: [] });
+  const [plantsList, setPlantsList] = useState([]);
   const [refreshing, setRefreshing] = useState(false);
 
   const loadStats = async () => {
@@ -21,12 +21,12 @@ const HomeScreen = ({ navigation }) => {
     const plantsResult = await getPlants();
     if(plantsResult.success){
       setPlantsCount(plantsResult.data.count);
+      setPlantsList(plantsResult.data.plants || []);
     }
 
     let totalDiseases = 0;
-    const plantsResult2= await getPlants();
-    if(plantsResult2.success){
-      for(const plant of plantsResult2.data.count){
+    if(plantsResult.success && plantsResult.data.plants){
+      for(const plant of plantsResult.data.plants){
         const diseasesResult = await getDiseases(plant);
         if(diseasesResult.success){
           totalDiseases += diseasesResult.data.count;
@@ -39,6 +39,40 @@ const HomeScreen = ({ navigation }) => {
   useEffect(() => { loadStats(); }, []);
 
   const onRefresh = async () => { setRefreshing(true); await loadStats(); setRefreshing(false); };
+
+  // Nombres en español e iconos para cada planta
+  const plantNames = {
+    "Apple": "Manzano",
+    "Blueberry": "Arándano",
+    "Cherry": "Cerezo",
+    "Corn": "Maíz",
+    "Grape": "Vid",
+    "Orange": "Naranjo",
+    "Peach": "Durazno",
+    "Pepper": "Pimiento",
+    "Potato": "Papa",
+    "Raspberry": "Frambuesa",
+    "Soybean": "Soya",
+    "Squash": "Calabaza",
+    "Strawberry": "Fresa",
+    "Tomato": "Tomate",
+  };
+  const plantIcons = {
+    "Apple": "🍎",
+    "Blueberry": "🫐",
+    "Cherry": "🍒",
+    "Corn": "🌽",
+    "Grape": "🍇",
+    "Orange": "🍊",
+    "Peach": "🍑",
+    "Pepper": "🌶️",
+    "Potato": "🥔",
+    "Raspberry": "🍇",
+    "Soybean": "🌱",
+    "Squash": "🎃",
+    "Strawberry": "🍓",
+    "Tomato": "🍅",
+  };
 
   return (
     <View style={styles.container}>
@@ -87,6 +121,24 @@ const HomeScreen = ({ navigation }) => {
           <Text style={styles.infoTitle}>¿Cómo funciona?</Text>
           <Text style={styles.infoText}>1. Toma una foto de la hoja de tu planta{'\n'}2. Nuestra IA analiza la imagen{'\n'}3. Recibe diagnóstico y recomendaciones</Text>
         </View>
+
+        {/* Plantas Soportadas */}
+        {plantsList.length > 0 && (
+          <View style={styles.plantsCard}>
+            <View style={styles.plantsHeader}>
+              <Ionicons name="leaf-outline" size={20} color={COLORS.primary} />
+              <Text style={styles.plantsTitle}>Plantas Soportadas</Text>
+            </View>
+            <View style={styles.plantsGrid}>
+              {plantsList.map((plant, index) => (
+                <View key={index} style={styles.plantItem}>
+                  <Text style={styles.plantIcon}>{plantIcons[plant] || '🌿'}</Text>
+                  <Text style={styles.plantName}>{plantNames[plant] || plant}</Text>
+                </View>
+              ))}
+            </View>
+          </View>
+        )}
       </ScrollView>
 
       {/* Boton de cerrar sesion flotante */}
@@ -115,6 +167,48 @@ const styles = StyleSheet.create({
   infoCard: { backgroundColor: COLORS.white, borderRadius: BORDER_RADIUS.large, padding: 20, ...SHADOWS.card },
   infoTitle: { ...FONTS.subtitle, marginBottom: 8 },
   infoText: { ...FONTS.body, lineHeight: 24, color: COLORS.textSecondary },
+  plantsCard: {
+    backgroundColor: COLORS.white,
+    borderRadius: BORDER_RADIUS.large,
+    padding: 20,
+    marginTop: 12,
+    ...SHADOWS.card,
+  },
+  plantsHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  plantsTitle: {
+    ...FONTS.subtitle,
+    marginLeft: 8,
+    fontSize: 16,
+  },
+  plantsGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'flex-start',
+    gap: 8,
+  },
+  plantItem: {
+    backgroundColor: COLORS.background,
+    borderRadius: BORDER_RADIUS.medium,
+    paddingVertical: 10,
+    paddingHorizontal: 14,
+    alignItems: 'center',
+    minWidth: '22%',
+    marginBottom: 4,
+  },
+  plantIcon: {
+    fontSize: 24,
+    marginBottom: 4,
+  },
+  plantName: {
+    fontSize: 11,
+    color: COLORS.text,
+    fontWeight: '500',
+    textAlign: 'center',
+  },
   logoutButton: {
     position: 'absolute',
     bottom: 24,
