@@ -13,16 +13,23 @@ const getSeverityColor = (severity) => {
 };
 
 const ResultScreen = ({ route, navigation }) => {
-  const { result, imageUri } = route.params;
+  const { result, imageUri, imageData } = route.params;
   const diseaseInfo = result?.disease_info || {};
   const confidencePercent = Math.round((result?.confidence || 0) * 100);
+  const isConfiable = result?.is_confiable;
+  const confidenceWarnings = result?.confidence_warnings || [];
+  const plantConfidence = result?.plant_confidence;
+  const diseaseConfidence = result?.disease_confidence;
+  
+  // Usar imageData (desde BD) si está disponible, sino imageUri (desde cámara)
+  const displayImage = imageData || imageUri;
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       {/* Imagen */}
-      {imageUri && (
+      {displayImage && (
         <View style={styles.imageContainer}>
-          <Image source={{ uri: imageUri }} style={styles.image} />
+          <Image source={{ uri: displayImage }} style={styles.image} />
           {result?.is_healthy && (
             <View style={styles.healthyBadge}>
               <Ionicons name="checkmark-circle" size={24} color={COLORS.white} />
@@ -37,6 +44,23 @@ const ResultScreen = ({ route, navigation }) => {
         <Text style={styles.plantName}>{result?.plant_name || 'Desconocida'}</Text>
         <Text style={styles.diseaseName}>{result?.disease_name || 'No identificada'}</Text>
 
+        {/* Badge de confiabilidad */}
+        {isConfiable !== undefined && (
+          <View style={[
+            styles.confiabilityBadge,
+            { backgroundColor: isConfiable ? COLORS.success : COLORS.warning }
+          ]}>
+            <Ionicons 
+              name={isConfiable ? "checkmark-circle" : "warning"} 
+              size={18} 
+              color={COLORS.white} 
+            />
+            <Text style={styles.confiabilityText}>
+              {isConfiable ? 'Diagnóstico Confiable' : 'Baja Confianza'}
+            </Text>
+          </View>
+        )}
+
         {/* Barra de confianza */}
         <View style={styles.confidenceContainer}>
           <Text style={styles.confidenceLabel}>Confianza del diagnóstico</Text>
@@ -45,6 +69,30 @@ const ResultScreen = ({ route, navigation }) => {
           </View>
           <Text style={styles.confidenceValue}>{confidencePercent}%</Text>
         </View>
+
+        {/* Detalles de confianza */}
+        {(plantConfidence || diseaseConfidence) && (
+          <View style={styles.confidenceDetails}>
+            {plantConfidence && (
+              <View style={styles.confidenceRow}>
+                <Text style={styles.confidenceLabel}>Planta:</Text>
+                <View style={styles.confidenceBarSmall}>
+                  <View style={[styles.confidenceFillSmall, { width: `${plantConfidence * 100}%` }]} />
+                </View>
+                <Text style={styles.confidenceTextSmall}>{Math.round(plantConfidence * 100)}%</Text>
+              </View>
+            )}
+            {diseaseConfidence && (
+              <View style={styles.confidenceRow}>
+                <Text style={styles.confidenceLabel}>Enfermedad:</Text>
+                <View style={styles.confidenceBarSmall}>
+                  <View style={[styles.confidenceFillSmall, { width: `${diseaseConfidence * 100}%` }]} />
+                </View>
+                <Text style={styles.confidenceTextSmall}>{Math.round(diseaseConfidence * 100)}%</Text>
+              </View>
+            )}
+          </View>
+        )}
 
         {/* Severidad */}
         {diseaseInfo.severity && (
@@ -56,6 +104,22 @@ const ResultScreen = ({ route, navigation }) => {
           </View>
         )}
       </View>
+
+      {/* Advertencias de confianza */}
+      {confidenceWarnings.length > 0 && (
+        <View style={styles.warningCard}>
+          <Ionicons name="warning" size={24} color={COLORS.warning} />
+          <View style={styles.warningContent}>
+            <Text style={styles.warningTitle}>Advertencias de Confianza</Text>
+            {confidenceWarnings.map((warning, index) => (
+              <Text key={index} style={styles.warningText}>{warning}</Text>
+            ))}
+            <Text style={styles.warningRecommendation}>
+              Se recomienda consultar con un especialista agrícola para confirmar el diagnóstico.
+            </Text>
+          </View>
+        </View>
+      )}
 
       {/* Descripción */}
       {diseaseInfo.description && (
@@ -132,6 +196,86 @@ const styles = StyleSheet.create({
   severityLabel: { fontSize: 14, color: COLORS.textSecondary },
   severityBadge: { paddingHorizontal: 12, paddingVertical: 4, borderRadius: BORDER_RADIUS.small },
   severityText: { color: COLORS.white, fontWeight: 'bold', fontSize: 12 },
+  confiabilityBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    alignSelf: 'flex-start',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: BORDER_RADIUS.small,
+    marginBottom: 12,
+  },
+  confiabilityText: {
+    color: COLORS.white,
+    fontWeight: 'bold',
+    fontSize: 12,
+    marginLeft: 6,
+  },
+  confidenceDetails: {
+    marginTop: 12,
+    paddingTop: 12,
+    borderTopWidth: 1,
+    borderTopColor: COLORS.border,
+  },
+  confidenceRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  confidenceBarSmall: {
+    flex: 1,
+    height: 6,
+    backgroundColor: COLORS.border,
+    borderRadius: 3,
+    overflow: 'hidden',
+    marginHorizontal: 8,
+  },
+  confidenceFillSmall: {
+    height: '100%',
+    backgroundColor: COLORS.primary,
+    borderRadius: 3,
+  },
+  confidenceTextSmall: {
+    fontSize: 11,
+    color: COLORS.textSecondary,
+    minWidth: 35,
+    textAlign: 'right',
+  },
+  warningCard: {
+    flexDirection: 'row',
+    backgroundColor: '#FFF3E0',
+    borderLeftWidth: 4,
+    borderLeftColor: COLORS.warning,
+    borderRadius: BORDER_RADIUS.medium,
+    padding: 16,
+    marginBottom: 12,
+    ...SHADOWS.card,
+  },
+  warningContent: {
+    flex: 1,
+    marginLeft: 12,
+  },
+  warningTitle: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: COLORS.warning,
+    marginBottom: 8,
+  },
+  warningText: {
+    fontSize: 13,
+    color: COLORS.textSecondary,
+    lineHeight: 18,
+    marginBottom: 4,
+  },
+  warningRecommendation: {
+    fontSize: 12,
+    color: COLORS.textSecondary,
+    fontStyle: 'italic',
+    marginTop: 8,
+    paddingTop: 8,
+    borderTopWidth: 1,
+    borderTopColor: '#FFE0B2',
+  },
   sectionCard: { backgroundColor: COLORS.white, borderRadius: BORDER_RADIUS.large, padding: 20, marginBottom: 12, ...SHADOWS.card },
   sectionTitle: { ...FONTS.subtitle, marginBottom: 8 },
   sectionText: { ...FONTS.body, lineHeight: 24, color: COLORS.textSecondary },

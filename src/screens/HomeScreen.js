@@ -3,7 +3,7 @@ import { View, Text, TouchableOpacity, StyleSheet, ScrollView, RefreshControl } 
 import { Ionicons } from '@expo/vector-icons';
 import Toast from 'react-native-toast-message';
 import { COLORS, FONTS, SHADOWS, BORDER_RADIUS } from '../config/theme';
-import { getStats, getPlants, getDiseases } from '../services/predictionService';
+import { getStats, getPlants, getDiseasesCount } from '../services/predictionService';
 import { useAuth } from '../context/AuthContext';
 
 const HomeScreen = ({ navigation }) => {
@@ -24,16 +24,11 @@ const HomeScreen = ({ navigation }) => {
       setPlantsList(plantsResult.data.plants || []);
     }
 
-    let totalDiseases = 0;
-    if(plantsResult.success && plantsResult.data.plants){
-      for(const plant of plantsResult.data.plants){
-        const diseasesResult = await getDiseases(plant);
-        if(diseasesResult.success){
-          totalDiseases += diseasesResult.data.count;
-        }
-      }
+    // Usar endpoint optimizado para obtener total de enfermedades en una sola llamada
+    const diseasesResult = await getDiseasesCount();
+    if(diseasesResult.success){
+      setDiseasesCount(diseasesResult.data.total_diseases);
     }
-    setDiseasesCount(totalDiseases);
   };
 
   useEffect(() => { loadStats(); }, []);

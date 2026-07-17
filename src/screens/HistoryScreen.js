@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, FlatList, RefreshControl } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, FlatList, RefreshControl, Image } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS, FONTS, SHADOWS, BORDER_RADIUS } from '../config/theme';
 import { getHistory } from '../services/predictionService';
@@ -25,10 +25,20 @@ const HistoryItem = ({ item, onPress }) => {
   const diseaseInfo = result?.disease_info || {};
   const severity = diseaseInfo?.severity;
   const treatment = diseaseInfo?.treatment || result?.treatment || '';
+  const imageData = item?.image_data;
 
   return (
     <TouchableOpacity style={styles.card} onPress={onPress}>
-      <View style={styles.cardLeft}>
+      {imageData && (
+        <View style={styles.imageContainer}>
+          <Image
+            source={{ uri: imageData }}
+            style={styles.thumbnail}
+            resizeMode="cover"
+          />
+        </View>
+      )}
+      <View style={[styles.cardLeft, !imageData && { marginRight: 12 }]}>
         <View style={[styles.statusDot, { backgroundColor: isHealthy ? COLORS.success : COLORS.error }]} />
       </View>
       <View style={styles.cardCenter}>
@@ -92,6 +102,7 @@ const HistoryScreen = ({ navigation }) => {
   const handleItemPress = (item) => {
     navigation.navigate('Result', {
       result: item?.result || {},
+      imageData: item?.image_data,  // Pasar imagen guardada en BD
     });
   };
 
@@ -119,6 +130,15 @@ const styles = StyleSheet.create({
     flexDirection: 'row', alignItems: 'center',
     backgroundColor: COLORS.white, borderRadius: BORDER_RADIUS.medium,
     padding: 16, marginBottom: 10, ...SHADOWS.card,
+  },
+  imageContainer: {
+    marginRight: 12,
+  },
+  thumbnail: {
+    width: 60,
+    height: 60,
+    borderRadius: BORDER_RADIUS.small,
+    backgroundColor: COLORS.background,
   },
   cardLeft: { marginRight: 12 },
   statusDot: { width: 12, height: 12, borderRadius: 6 },

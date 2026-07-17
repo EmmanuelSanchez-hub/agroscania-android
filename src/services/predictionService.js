@@ -103,6 +103,18 @@ export const getDiseases = async (plant) => {
 };
 
 /**
+ * Obtiene el total de enfermedades de todas las plantas (endpoint optimizado)
+ */
+export const getDiseasesCount = async () => {
+  try {
+    const response = await apiClient.get('/api/diseases/count');
+    return { success: true, data: response.data };
+  } catch (error) {
+    return { success: false, error: 'Error al cargar conteo de enfermedades' };
+  }
+};
+
+/**
  * Obtiene recomendaciones con datos de clima
  */
 export const getRecommendations = async (plant, lat, lng) => {
