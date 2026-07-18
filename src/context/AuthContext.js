@@ -70,8 +70,9 @@ export const AuthProvider = ({ children }) => {
     }
   }, []);
 
+  //colocar despues de userData si estas en modo desarrollo || { uid: 'dev-user-uid', email: 'dev@agroscania.com', name: 'Usuario Dev' }
   const login = (userData) => {
-    setUser(userData || { uid: 'dev-user-uid', email: 'dev@agroscania.com', name: 'Usuario Dev' });
+    setUser(userData);
     setIsLoggedIn(true);
   };
 
