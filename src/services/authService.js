@@ -17,8 +17,6 @@ import {
 import * as WebBrowser from 'expo-web-browser';
 import { makeRedirectUri, AuthRequest, ResponseType, exchangeCodeAsync } from 'expo-auth-session';
 
-const DEV_TOKEN = 'dev-token';
-
 const GOOGLE_CLIENT_ID = '89440772701-2ru59lmsj41ihhacbo9ggrasp9b18dvc.apps.googleusercontent.com';
 const GOOGLE_DISCOVERY = {
   authorizationEndpoint: 'https://accounts.google.com/o/oauth2/v2/auth',
@@ -31,7 +29,7 @@ export const getAuthToken = async () => {
     const auth = getAuth();
     if (auth.currentUser) return await auth.currentUser.getIdToken();
   } catch (e) { /* sin Firebase */ }
-  return DEV_TOKEN;
+  return null;
 };
 
 export const getAuthHeaders = async () => ({
@@ -51,9 +49,6 @@ export const loginWithEmail = async (email, password) => {
       token: await userCredential.user.getIdToken(),
     };
   } catch (error) {
-    if (email && password) {
-      return { success: true, user: { uid: 'dev-user-uid', email, name: email.split('@')[0] }, token: DEV_TOKEN };
-    }
     return { success: false, error: error.message };
   }
 };
@@ -68,9 +63,6 @@ export const registerWithEmail = async (email, password, name) => {
       token: await userCredential.user.getIdToken(),
     };
   } catch (error) {
-    if (email && password && name) {
-      return { success: true, user: { uid: 'dev-user-uid', email, name }, token: DEV_TOKEN };
-    }
     return { success: false, error: error.message };
   }
 };
